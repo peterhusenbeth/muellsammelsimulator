@@ -1,0 +1,103 @@
+#:import colors kivy.utils.get_color_from_hex
+
+<LevelContainer>:
+    canvas.before:
+        Color:
+            rgba: colors('#FFCC80')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+        Color:
+            rgba: colors('#1976D2')
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 3
+
+<ScoreBox>:
+    canvas.before:
+        Color:
+            rgba: colors('#FFCC80')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [8,]
+        Color:
+            rgba: colors('#1976D2')
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 2
+
+<MenuBildschirm>:
+    FloatLayout:
+        canvas.before:
+            Rectangle:
+                source: 'assets/menu_background.jpg'
+                size: self.size
+                pos: self.pos
+
+        # Titel - zentriert oben
+        Label:
+            id: title
+            text: 'Müllsammelsimulator'
+            font_size: 120
+            bold: True
+            color: colors('#B3E5FC')
+            size_hint: None, None
+            size: 800, 100
+            pos_hint: {'center_x': 0.5, 'top': 0.95}
+
+        # Level-Container - zentriert
+        FloatLayout:
+            id: levels_container
+            size_hint: None, None
+            size: 1500, 1200
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+            BoxLayout:
+                id: left_column
+                orientation: 'vertical'
+                size_hint: None, None
+                size: 630, 1200
+                pos_hint: {'right': 0.5, 'center_y': 0.5}
+                spacing: 60
+                padding: 5
+
+            BoxLayout:
+                id: right_column
+                orientation: 'vertical'
+                size_hint: None, None
+                size: 630, 1200
+                pos_hint: {'x': 0.5, 'center_y': 0.5}
+                spacing: 60
+                padding: 5
+
+        # Gesamtpunktzahl-Feld - unten rechts
+        BoxLayout:
+            id: score_container
+            size_hint: None, None
+            size: 500, 120
+            pos_hint: {'right': 1, 'bottom': 0}
+            padding: 20
+
+            canvas.before:
+                Color:
+                    rgba: colors('#FFCC80')
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [15,]
+                Color:
+                    rgba: colors('#1976D2')
+                Line:
+                    rectangle: (self.x, self.y, self.width, self.height)
+                    width: 3
+
+            Label:
+                id: total_score_label
+                text: 'Gesamtpunktzahl: 0'
+                font_size: 48
+                bold: True
+                color: colors('#1976D2')
+                halign: 'center'
+                valign: 'middle'

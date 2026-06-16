@@ -1,0 +1,33 @@
+#:import colors kivy.utils.get_color_from_hex
+
+<SpielBildschirm>:
+    FloatLayout:
+        # Hintergrundbild — füllt den Bildschirm, schneidet Ränder ab
+        Image:
+            id: hintergrund
+            source: ''
+            fit_mode: 'cover'
+            size_hint: 1, 1
+
+        # Level-Titel oben mitte
+        Label:
+            id: level_titel
+            text: ''
+            font_size: 60
+            bold: True
+            color: 1, 1, 1, 1
+            size_hint: None, None
+            size: 600, 80
+            pos_hint: {'center_x': 0.5, 'top': 0.98}
+
+        # Zurück-Button oben links
+        Button:
+            text: 'Zurück zum Menü'
+            font_size: 32
+            size_hint: None, None
+            size: 350, 80
+            pos_hint: {'x': 0.02, 'top': 0.98}
+            background_normal: ''
+            background_color: colors('#FFCC80')
+            color: 0, 0, 0, 1
+            on_press: root.zurueck_zum_menue()
