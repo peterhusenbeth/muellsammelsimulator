@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.swp
+*.swo
+
+# Kivy
+*.kv~
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and build
+*.log
+build/
+dist/
+
+# Scores file (optional: uncomment if you don't want to track scores)
+# scores.json
+
+# Environment
+venv/
+.env
