@@ -81,7 +81,7 @@ class MenuBildschirm(Screen):
         # Erstellt das Label mit Level-Nummer und Name
         label = Label()
         label.text = "{0} - {1}".format(level_id, level_name)
-        label.font_size = 20
+        label.font_size = 30
         label.color = (0.09, 0.46, 0.82, 1)
         label.size_hint_x = 1
         return label
@@ -93,11 +93,11 @@ class MenuBildschirm(Screen):
         wrapper.width = 70
         box = ScoreBox()
         box.size_hint = (None, None)
-        box.size = (30, 30)
+        box.size = (40, 40)
         box.pos_hint = {"center_y": 0.5, "right": 1}
         label = Label()
         label.text = "{0}".format(score)
-        label.font_size = 20
+        label.font_size = 30
         label.color = (0.09, 0.46, 0.82, 1)
         box.add_widget(label)
         wrapper.add_widget(box)
@@ -107,7 +107,7 @@ class MenuBildschirm(Screen):
         # Baut den kompletten Level-Button zusammen
         container = LevelContainer()
         container.size_hint = (None, None)
-        container.size = (300, 50)
+        container.size = (500, 60)
         container.level_id = level_id
         inhalt = BoxLayout()
         inhalt.orientation = "horizontal"

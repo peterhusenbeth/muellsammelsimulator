@@ -51,31 +51,31 @@
             color: colors('#B3E5FC')
             size_hint: None, None
             size: 800, 100
-            pos_hint: {'center_x': 0.5, 'top': 0.95}
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
 
         # Level-Container - zentriert
         FloatLayout:
             id: levels_container
             size_hint: None, None
-            size: 720, 500
-            pos_hint: {'center_x': 0.5, 'center_y': 0.45}
+            size: 1300, 580
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
             BoxLayout:
                 id: left_column
                 orientation: 'vertical'
                 size_hint: None, None
-                size: 340, 500
+                size: 620, 580
                 pos_hint: {'right': 0.5, 'center_y': 0.5}
-                spacing: 20
+                spacing: 35
                 padding: 10
 
             BoxLayout:
                 id: right_column
                 orientation: 'vertical'
                 size_hint: None, None
-                size: 340, 500
+                size: 620, 580
                 pos_hint: {'x': 0.5, 'center_y': 0.5}
-                spacing: 20
+                spacing: 35
                 padding: 10
 
         # Gesamtpunktzahl-Feld - unten rechts
