@@ -1,5 +1,11 @@
 #:import colors kivy.utils.get_color_from_hex
 
+<Label>:
+    font_name: 'assets/schrift.ttf'
+
+<Button>:
+    font_name: 'assets/schrift.ttf'
+
 <LevelContainer>:
     canvas.before:
         Color:
@@ -51,26 +57,26 @@
         FloatLayout:
             id: levels_container
             size_hint: None, None
-            size: 1500, 1200
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size: 900, 700
+            pos_hint: {'center_x': 0.5, 'center_y': 0.45}
 
             BoxLayout:
                 id: left_column
                 orientation: 'vertical'
                 size_hint: None, None
-                size: 630, 1200
+                size: 420, 700
                 pos_hint: {'right': 0.5, 'center_y': 0.5}
-                spacing: 60
-                padding: 5
+                spacing: 30
+                padding: 10
 
             BoxLayout:
                 id: right_column
                 orientation: 'vertical'
                 size_hint: None, None
-                size: 630, 1200
+                size: 420, 700
                 pos_hint: {'x': 0.5, 'center_y': 0.5}
-                spacing: 60
-                padding: 5
+                spacing: 30
+                padding: 10
 
         # Gesamtpunktzahl-Feld - unten rechts
         BoxLayout:
@@ -82,7 +88,7 @@
 
             canvas.before:
                 Color:
-                    rgba: colors('#FFCC80')
+                    rgba: colors('#E3F2FD')
                 RoundedRectangle:
                     pos: self.pos
                     size: self.size
@@ -96,7 +102,7 @@
             Label:
                 id: total_score_label
                 text: 'Gesamtpunktzahl: 0'
-                font_size: 48
+                font_size: 42
                 bold: True
                 color: colors('#1976D2')
                 halign: 'center'

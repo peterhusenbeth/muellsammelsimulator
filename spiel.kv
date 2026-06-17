@@ -1,33 +1,143 @@
 #:import colors kivy.utils.get_color_from_hex
 
+<GegenstandWidget>:
+    size_hint: None, None
+    size: 100, 100
+    fit_mode: 'contain'
+
+<ErgebnisOverlay>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.7
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 <SpielBildschirm>:
     FloatLayout:
-        # Hintergrundbild — füllt den Bildschirm, schneidet Ränder ab
+        id: spielfeld
+
+        # Hintergrundbild
         Image:
             id: hintergrund
             source: ''
             fit_mode: 'cover'
             size_hint: 1, 1
 
-        # Level-Titel oben mitte
+        # Natur-Ecke unten links
+        Label:
+            text: 'Natur'
+            font_size: 40
+            bold: True
+            color: 1, 1, 1, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+            size_hint: 0.25, 0.25
+            pos_hint: {'x': 0, 'y': 0}
+            canvas.before:
+                Color:
+                    rgba: 0.2, 0.6, 0.2, 0.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        # Müll-Ecke unten rechts
+        Label:
+            text: 'Müll'
+            font_size: 40
+            bold: True
+            color: 1, 1, 1, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+            size_hint: 0.25, 0.25
+            pos_hint: {'right': 1, 'y': 0}
+            canvas.before:
+                Color:
+                    rgba: 0.6, 0.3, 0.2, 0.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        # Herzen oben links, vertikal gestapelt
+        BoxLayout:
+            id: leben_anzeige
+            orientation: 'vertical'
+            size_hint: None, None
+            size: 60, 180
+            pos_hint: {'x': 0.02, 'top': 0.98}
+            spacing: 5
+
+        # Punktzahl + Menü-Button oben mitte
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: 420, 70
+            pos_hint: {'center_x': 0.5, 'top': 0.98}
+            spacing: 0
+
+            Label:
+                id: punktzahl_anzeige
+                text: 'Punkte: 0'
+                font_size: 32
+                bold: True
+                color: colors('#1976D2')
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
+                size_hint_x: 0.6
+                canvas.before:
+                    Color:
+                        rgba: colors('#E3F2FD')
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [10, 0, 0, 10]
+                    Color:
+                        rgba: colors('#1976D2')
+                    Line:
+                        rectangle: (self.x, self.y, self.width, self.height)
+                        width: 2
+
+            Button:
+                text: 'Menü'
+                font_size: 32
+                bold: True
+                size_hint_x: 0.4
+                background_normal: ''
+                background_color: colors('#FFCC80')
+                color: colors('#1976D2')
+                on_press: root.zurueck_zum_menue()
+                canvas.after:
+                    Color:
+                        rgba: colors('#1976D2')
+                    Line:
+                        rectangle: (self.x, self.y, self.width, self.height)
+                        width: 2
+
+        # Level-Name oben rechts
         Label:
             id: level_titel
             text: ''
-            font_size: 60
-            bold: True
-            color: 1, 1, 1, 1
-            size_hint: None, None
-            size: 600, 80
-            pos_hint: {'center_x': 0.5, 'top': 0.98}
-
-        # Zurück-Button oben links
-        Button:
-            text: 'Zurück zum Menü'
             font_size: 32
+            bold: True
+            color: colors('#1976D2')
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
             size_hint: None, None
-            size: 350, 80
-            pos_hint: {'x': 0.02, 'top': 0.98}
-            background_normal: ''
-            background_color: colors('#FFCC80')
-            color: 0, 0, 0, 1
-            on_press: root.zurueck_zum_menue()
+            size: 280, 70
+            pos_hint: {'right': 0.98, 'top': 0.98}
+            canvas.before:
+                Color:
+                    rgba: colors('#E3F2FD')
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10,]
+                Color:
+                    rgba: colors('#1976D2')
+                Line:
+                    rectangle: (self.x, self.y, self.width, self.height)
+                    width: 2
