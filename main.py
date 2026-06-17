@@ -9,9 +9,25 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.animation import Animation
+from kivy.utils import platform
 from data import LEVELS, GEGENSTAENDE, punktzahlen_laden, beste_punktzahl_aktualisieren
 from logic import gesamte_punktzahl_berechnen, level_auswaehlen
 from logic import spiel_starten, ecke_erkennen, gegenstand_pruefen, spiel_beendet
+
+# Vollbild und Navigationsleiste nur auf Android
+if platform == "android":
+    Window.fullscreen = True
+    Window.borderless = True
+    from android.permissions import request_permissions, Permission
+    request_permissions([Permission.INTERNET, Permission.VIBRATE])
+    from jnius import autoclass
+    PythonActivity = autoclass("org.kivy.android.PythonActivity")
+    View = autoclass("android.view.View")
+    aktivitaet = PythonActivity.mActivity
+    flags = View.SYSTEM_UI_FLAG_FULLSCREEN
+    flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+    flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+    aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
 
 
 # Styling wird in menu.kv und spiel.kv definiert
@@ -79,7 +95,7 @@ class MenuBildschirm(Screen):
         # Erstellt das Label mit Level-Nummer und Name
         label = Label()
         label.text = "{0} - {1}".format(level_id, level_name)
-        label.font_size = 30
+        label.font_size = 20
         label.color = (0.09, 0.46, 0.82, 1)
         label.size_hint_x = 1
         return label
@@ -91,11 +107,11 @@ class MenuBildschirm(Screen):
         wrapper.width = 70
         box = ScoreBox()
         box.size_hint = (None, None)
-        box.size = (60, 60)
+        box.size = (30, 30)
         box.pos_hint = {"center_y": 0.5, "right": 1}
         label = Label()
         label.text = "{0}".format(score)
-        label.font_size = 30
+        label.font_size = 20
         label.color = (0.09, 0.46, 0.82, 1)
         box.add_widget(label)
         wrapper.add_widget(box)
@@ -105,7 +121,7 @@ class MenuBildschirm(Screen):
         # Baut den kompletten Level-Button zusammen
         container = LevelContainer()
         container.size_hint = (None, None)
-        container.size = (400, 110)
+        container.size = (300, 50)
         container.level_id = level_id
         inhalt = BoxLayout()
         inhalt.orientation = "horizontal"
