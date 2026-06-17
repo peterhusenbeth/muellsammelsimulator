@@ -325,7 +325,8 @@ class MuelleSammelSimulatorApp(App):
         # Startet die App und lädt beide Bildschirme
         Builder.load_file("menu.kv")
         Builder.load_file("spiel.kv")
-        Window.size = (2000, 1200)
+        if platform != "android":
+            Window.size = (2000, 1200)
         Window.orientation = "landscape"
         sm = ScreenManager()
         sm.transition = FadeTransition()
@@ -339,22 +340,23 @@ class MuelleSammelSimulatorApp(App):
         return sm
 
     def on_start(self):
-        # Vollbild und Navigationsleiste auf Android verstecken
+        # Navigationsleiste auf Android verstecken
         if platform == "android":
-            Window.fullscreen = True
-            Window.borderless = True
-            Clock.schedule_once(self.android_vollbild, 0.5)
+            Clock.schedule_once(self.android_vollbild, 1)
 
     def android_vollbild(self, _dt):
         # Versteckt die Android-Navigationsleiste
-        from jnius import autoclass
-        PythonActivity = autoclass("org.kivy.android.PythonActivity")
-        View = autoclass("android.view.View")
-        aktivitaet = PythonActivity.mActivity
-        flags = View.SYSTEM_UI_FLAG_FULLSCREEN
-        flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-        flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
+        try:
+            from jnius import autoclass
+            PythonActivity = autoclass("org.kivy.android.PythonActivity")
+            View = autoclass("android.view.View")
+            aktivitaet = PythonActivity.mActivity
+            flags = View.SYSTEM_UI_FLAG_FULLSCREEN
+            flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
+        except Exception as fehler:
+            print("Vollbild-Fehler: " + str(fehler))
 
 
 if __name__ == "__main__":
