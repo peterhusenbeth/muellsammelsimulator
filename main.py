@@ -14,20 +14,6 @@ from data import LEVELS, GEGENSTAENDE, punktzahlen_laden, beste_punktzahl_aktual
 from logic import gesamte_punktzahl_berechnen, level_auswaehlen
 from logic import spiel_starten, ecke_erkennen, gegenstand_pruefen, spiel_beendet
 
-# Vollbild und Navigationsleiste nur auf Android
-if platform == "android":
-    Window.fullscreen = True
-    Window.borderless = True
-    from android.permissions import request_permissions, Permission
-    request_permissions([Permission.INTERNET, Permission.VIBRATE])
-    from jnius import autoclass
-    PythonActivity = autoclass("org.kivy.android.PythonActivity")
-    View = autoclass("android.view.View")
-    aktivitaet = PythonActivity.mActivity
-    flags = View.SYSTEM_UI_FLAG_FULLSCREEN
-    flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-    flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-    aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
 
 
 # Styling wird in menu.kv und spiel.kv definiert
@@ -351,6 +337,24 @@ class MuelleSammelSimulatorApp(App):
         sm.add_widget(menu)
         sm.add_widget(spiel)
         return sm
+
+    def on_start(self):
+        # Vollbild und Navigationsleiste auf Android verstecken
+        if platform == "android":
+            Window.fullscreen = True
+            Window.borderless = True
+            Clock.schedule_once(self.android_vollbild, 0.5)
+
+    def android_vollbild(self, _dt):
+        # Versteckt die Android-Navigationsleiste
+        from jnius import autoclass
+        PythonActivity = autoclass("org.kivy.android.PythonActivity")
+        View = autoclass("android.view.View")
+        aktivitaet = PythonActivity.mActivity
+        flags = View.SYSTEM_UI_FLAG_FULLSCREEN
+        flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
 
 
 if __name__ == "__main__":
