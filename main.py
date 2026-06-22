@@ -1,5 +1,6 @@
 import sys
 import math
+import time
 if sys.platform != "linux":
     from kivy.config import Config
     #Config.set("graphics", "position", "custom")
@@ -20,9 +21,12 @@ from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.utils import platform
 from kivy.uix.scatter import Scatter
+from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty
 from data import LEVELS, GEGENSTAENDE, punktzahlen_laden, beste_punktzahl_aktualisieren
-from logic import gesamte_punktzahl_berechnen, level_auswaehlen
+from data import zeiten_laden, beste_zeit_aktualisieren
+from logic import gesamte_punktzahl_berechnen, level_auswaehlen, zeit_text
+from logic import gesamte_zeit_berechnen, abgeschlossene_level_zaehlen
 
 DESIGN_BREITE = 2000
 DESIGN_HOEHE = 1200
@@ -44,6 +48,10 @@ class ErgebnisOverlay(FloatLayout):
     pass
 
 
+class SirenenLicht(Widget):
+    pass
+
+
 class GegenstandWidget(Image):
     # Drehwinkel in Grad, wird im spiel.kv zum Drehen des Bildes benutzt
     drehung = NumericProperty(0)
@@ -61,6 +69,7 @@ class MenuBildschirm(Screen):
     def __init__(self):
         super().__init__()
         self.punktzahlen = punktzahlen_laden()
+        self.zeiten = zeiten_laden()
         self.gewaehltes_level = None
         Clock.schedule_once(self.ui_aufbauen, 0)
 
@@ -79,7 +88,8 @@ class MenuBildschirm(Screen):
         for level_id in sorted(LEVELS.keys()):
             level_data = LEVELS[level_id]
             score = self.punktzahlen.get(level_id, 0)
-            button = self.level_button_erstellen(level_id, level_data["name"], score)
+            zeit = self.zeiten.get(level_id, 0)
+            button = self.level_button_erstellen(level_id, level_data["name"], score, zeit)
             if zaehler < 5:
                 left_col.add_widget(button)
             else:
@@ -109,7 +119,7 @@ class MenuBildschirm(Screen):
         # Erstellt die quadratische Punktzahl-Box, vertikal zentriert
         wrapper = FloatLayout()
         wrapper.size_hint = (None, 1)
-        wrapper.width = 70
+        wrapper.width = 40
         box = ScoreBox()
         box.size_hint = (None, None)
         box.size = (40, 40)
@@ -122,7 +132,24 @@ class MenuBildschirm(Screen):
         wrapper.add_widget(box)
         return wrapper
 
-    def level_button_erstellen(self, level_id, level_name, score):
+    def erstelle_zeit_box(self, zeit):
+        # Erstellt die Box mit der besten Zeit, links neben der Punktzahl
+        wrapper = FloatLayout()
+        wrapper.size_hint = (None, 1)
+        wrapper.width = 140
+        box = ScoreBox()
+        box.size_hint = (None, None)
+        box.size = (140, 40)
+        box.pos_hint = {"center_y": 0.5, "right": 1}
+        label = Label()
+        label.text = zeit_text(zeit)
+        label.font_size = 22
+        label.color = (0.09, 0.46, 0.82, 1)
+        box.add_widget(label)
+        wrapper.add_widget(box)
+        return wrapper
+
+    def level_button_erstellen(self, level_id, level_name, score, zeit):
         # Baut den kompletten Level-Button zusammen
         container = LevelContainer()
         container.size_hint = (None, None)
@@ -133,8 +160,9 @@ class MenuBildschirm(Screen):
         inhalt.size_hint = (1, 1)
         inhalt.pos_hint = {"x": 0, "y": 0}
         inhalt.padding = 8
-        inhalt.spacing = 5
+        inhalt.spacing = 0
         inhalt.add_widget(self.erstelle_name_label(level_id, level_name))
+        inhalt.add_widget(self.erstelle_zeit_box(zeit))
         inhalt.add_widget(self.erstelle_punkte_box(score))
         container.add_widget(inhalt)
         container.add_widget(self.erstelle_klick_bereich())
@@ -157,9 +185,15 @@ class MenuBildschirm(Screen):
         self.manager.current = "spiel"
 
     def gesamtpunktzahl_aktualisieren(self):
-        # Aktualisiert die Gesamtpunktzahl-Anzeige
+        # Aktualisiert die drei Übersichts-Felder unten (Level, Zeit, Punkte)
         total = gesamte_punktzahl_berechnen(self.punktzahlen)
         self.ids.total_score_label.text = "Gesamtpunktzahl: {0}".format(total)
+        gesamtzeit = gesamte_zeit_berechnen(self.zeiten)
+        self.ids.total_time_label.text = "Gesamtzeit: " + zeit_text(gesamtzeit)
+        fertige = abgeschlossene_level_zaehlen(self.zeiten)
+        anzahl = len(LEVELS)
+        text = "Levels abgeschlossen: {0}/{1}".format(fertige, anzahl)
+        self.ids.levels_done_label.text = text
 
 
 class SpielBildschirm(Screen):
@@ -174,6 +208,9 @@ class SpielBildschirm(Screen):
         self.aktives_widget = None
         self.touch_offset_x = 0
         self.touch_offset_y = 0
+        self.start_zeit = 0.0
+        self.laufende_zeit = 0.0
+        self.timer_event = None
 
     def on_touch_down(self, touch):
         # Startet das Ziehen eines Gegenstands
@@ -220,6 +257,26 @@ class SpielBildschirm(Screen):
         self.alle_gegenstaende_entfernen()
         self.gegenstaende_platzieren()
         self.anzeigen_aktualisieren()
+        self.timer_starten()
+
+    def timer_starten(self):
+        # Startet die Stoppuhr für das aktuelle Level
+        self.timer_stoppen()
+        self.start_zeit = time.monotonic()
+        self.laufende_zeit = 0.0
+        self.ids.zeit_anzeige.text = zeit_text(0)
+        self.timer_event = Clock.schedule_interval(self.timer_aktualisieren, 0.03)
+
+    def timer_aktualisieren(self, _dt):
+        # Aktualisiert die angezeigte Zeit
+        self.laufende_zeit = time.monotonic() - self.start_zeit
+        self.ids.zeit_anzeige.text = zeit_text(int(self.laufende_zeit * 1000))
+
+    def timer_stoppen(self):
+        # Hält die Stoppuhr an
+        if self.timer_event is not None:
+            self.timer_event.cancel()
+            self.timer_event = None
 
     def alle_gegenstaende_entfernen(self):
         # Entfernt alle Gegenstands-Widgets vom Bildschirm
@@ -306,11 +363,15 @@ class SpielBildschirm(Screen):
             return
         ergebnis = gegenstand_pruefen(widget.gegenstand_typ, ecke)
         self.punktzahl = self.punktzahl + ergebnis["punkte"]
+        if self.punktzahl < 0:
+            self.punktzahl = 0
         self.leben = self.leben + ergebnis["leben"]
         if ergebnis["richtig"]:
             widget.parent.remove_widget(widget)
             self.gegenstand_widgets.remove(widget)
         else:
+            if self.leben > 0:
+                self.alarm_zeigen()
             self.gegenstand_zuruecksetzen(widget)
         self.anzeigen_aktualisieren()
         self.ende_pruefen()
@@ -320,6 +381,42 @@ class SpielBildschirm(Screen):
         widget.x = widget.start_x
         widget.y = widget.start_y
         self.bewegung_starten(widget)
+
+    def alarm_zeigen(self):
+        # Zeigt einen roten Sirenen-Alarm in allen vier Bildschirm-Ecken
+        ecken = [
+            (0, 0), (DESIGN_BREITE, 0),
+            (0, DESIGN_HOEHE), (DESIGN_BREITE, DESIGN_HOEHE),
+        ]
+        for ecke in ecken:
+            licht = SirenenLicht()
+            licht.size_hint = (None, None)
+            licht.size = (340, 340)
+            licht.center_x = ecke[0]
+            licht.center_y = ecke[1]
+            self.ids.spielfeld.add_widget(licht)
+            self.alarm_vibrieren(licht)
+        Clock.schedule_once(self.alarm_entfernen, 1.0)
+
+    def alarm_vibrieren(self, licht):
+        # Lässt ein Sirenen-Licht ganz schnell zittern
+        basis_x = licht.x
+        basis_y = licht.y
+        zittern = Animation(x=basis_x + 9, y=basis_y - 7, duration=0.03)
+        zittern = zittern + Animation(x=basis_x - 8, y=basis_y + 8, duration=0.03)
+        zittern = zittern + Animation(x=basis_x + 7, y=basis_y + 6, duration=0.03)
+        zittern = zittern + Animation(x=basis_x - 9, y=basis_y - 6, duration=0.03)
+        zittern = zittern + Animation(x=basis_x, y=basis_y, duration=0.03)
+        zittern.repeat = True
+        zittern.start(licht)
+
+    def alarm_entfernen(self, _dt):
+        # Entfernt alle Sirenen-Lichter wieder vom Spielfeld
+        kinder = self.ids.spielfeld.children[:]
+        for kind in kinder:
+            if isinstance(kind, SirenenLicht):
+                Animation.cancel_all(kind)
+                self.ids.spielfeld.remove_widget(kind)
 
     def anzeigen_aktualisieren(self):
         # Aktualisiert Leben- und Punktzahl-Anzeige
@@ -341,9 +438,16 @@ class SpielBildschirm(Screen):
         if spiel_beendet(self.leben, len(self.gegenstand_widgets)):
             self.ergebnis_zeigen()
 
+    def ergebnis_speichern(self):
+        # Stoppt die Stoppuhr und speichert Punkte und (bei Sieg) die Zeit
+        self.timer_stoppen()
+        beste_punktzahl_aktualisieren(self.level_id, self.punktzahl)
+        if self.leben > 0:
+            beste_zeit_aktualisieren(self.level_id, int(self.laufende_zeit * 1000))
+
     def ergebnis_zeigen(self):
         # Zeigt das Ergebnis-Overlay am Ende des Levels an
-        beste_punktzahl_aktualisieren(self.level_id, self.punktzahl)
+        self.ergebnis_speichern()
         self.ergebnis_overlay = ErgebnisOverlay()
         self.ergebnis_overlay.size_hint = (1, 1)
         self.ergebnis_overlay.pos_hint = {"x": 0, "y": 0}
@@ -383,6 +487,7 @@ class SpielBildschirm(Screen):
 
     def zurueck_zum_menue(self):
         # Speichert Punktzahl, räumt auf und geht zurück zum Hauptmenü
+        self.timer_stoppen()
         if self.level_id is not None:
             beste_punktzahl_aktualisieren(self.level_id, self.punktzahl)
         self.alle_gegenstaende_entfernen()
@@ -391,6 +496,7 @@ class SpielBildschirm(Screen):
             self.ergebnis_overlay = None
         menu = self.manager.get_screen("menu")
         menu.punktzahlen = punktzahlen_laden()
+        menu.zeiten = zeiten_laden()
         menu.level_buttons_erstellen()
         menu.gesamtpunktzahl_aktualisieren()
         self.manager.current = "menu"

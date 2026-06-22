@@ -34,11 +34,26 @@
             rectangle: (self.x, self.y, self.width, self.height)
             width: 2
 
+<InfoFeld@BoxLayout>:
+    padding: 20
+    canvas.before:
+        Color:
+            rgba: colors('#E3F2FD')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [15,]
+        Color:
+            rgba: colors('#1976D2')
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 3
+
 <MenuBildschirm>:
     FloatLayout:
         canvas.before:
             Rectangle:
-                source: 'assets/menu_background.jpg'
+                source: 'assets/menu_hintergrund.jpg'
                 size: self.size
                 pos: self.pos
 
@@ -48,7 +63,7 @@
             text: 'Müllsammelsimulator'
             font_size: 120
             bold: True
-            color: colors('#B3E5FC')
+            color: colors('#1976D2')
             size_hint: None, None
             size: 800, 100
             pos_hint: {'center_x': 0.5, 'top': 0.9}
@@ -78,32 +93,47 @@
                 spacing: 35
                 padding: 10
 
-        # Gesamtpunktzahl-Feld - unten rechts
-        BoxLayout:
-            id: score_container
+        # Gesamtzeit unten links
+        InfoFeld:
             size_hint: None, None
-            size: 500, 120
-            pos_hint: {'right': 1, 'bottom': 0}
-            padding: 20
-
-            canvas.before:
-                Color:
-                    rgba: colors('#E3F2FD')
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [15,]
-                Color:
-                    rgba: colors('#1976D2')
-                Line:
-                    rectangle: (self.x, self.y, self.width, self.height)
-                    width: 3
-
+            size: 500, 100
+            pos_hint: {'x': 0, 'y': 0}
             Label:
-                id: total_score_label
-                text: 'Gesamtpunktzahl: 0'
-                font_size: 42
+                id: total_time_label
+                text: 'Gesamtzeit: 00:00:000'
+                font_size: 32
                 bold: True
                 color: colors('#1976D2')
                 halign: 'center'
                 valign: 'middle'
+                text_size: self.size
+
+        # Levels abgeschlossen unten mitte
+        InfoFeld:
+            size_hint: None, None
+            size: 500, 100
+            pos_hint: {'center_x': 0.5, 'y': 0}
+            Label:
+                id: levels_done_label
+                text: 'Levels abgeschlossen: 0/10'
+                font_size: 32
+                bold: True
+                color: colors('#1976D2')
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
+
+        # Gesamtpunktzahl unten rechts
+        InfoFeld:
+            size_hint: None, None
+            size: 500, 100
+            pos_hint: {'right': 1, 'y': 0}
+            Label:
+                id: total_score_label
+                text: 'Gesamtpunktzahl: 0'
+                font_size: 32
+                bold: True
+                color: colors('#1976D2')
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size

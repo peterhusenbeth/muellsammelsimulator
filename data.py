@@ -132,24 +132,58 @@ def standard_punktzahlen():
     return punktzahlen
 
 
-def punktzahlen_laden():
-    # Lädt Punktzahlen aus JSON, gibt Dict mit Integer-Keys zurück
+def alle_daten_laden():
+    # Lädt die ganze Speicherdatei (Punkte und Zeiten)
     if not os.path.exists(PUNKTZAHLEN_DATEI):
-        return standard_punktzahlen()
+        return {"punktzahlen": {}, "zeiten": {}}
     datei = open(PUNKTZAHLEN_DATEI, "r")
-    geladene_daten = json.load(datei)
+    inhalt = json.load(datei)
     datei.close()
-    punktzahlen = {}
-    for schluessel in geladene_daten.keys():
-        punktzahlen[int(schluessel)] = geladene_daten[schluessel]
-    return punktzahlen
+    # Alte Dateien hatten nur die Punkte direkt drin - wir holen sie ab
+    if "punktzahlen" not in inhalt:
+        return {"punktzahlen": inhalt, "zeiten": {}}
+    return inhalt
+
+
+def alle_daten_speichern(daten):
+    # Schreibt die ganze Speicherdatei (Punkte und Zeiten)
+    datei = open(PUNKTZAHLEN_DATEI, "w")
+    json.dump(daten, datei, indent=2)
+    datei.close()
+
+
+def werte_pro_level_laden(schluessel):
+    # Lädt einen Teil (z.B. "punktzahlen" oder "zeiten") mit Zahlen-Keys
+    daten = alle_daten_laden()
+    rohe_werte = daten.get(schluessel, {})
+    werte = {}
+    for level_id in LEVELS.keys():
+        werte[level_id] = rohe_werte.get(str(level_id), 0)
+    return werte
+
+
+def punktzahlen_laden():
+    # Lädt die Punktzahlen, gibt Dict mit Integer-Keys zurück
+    return werte_pro_level_laden("punktzahlen")
+
+
+def zeiten_laden():
+    # Lädt die Zeiten (in Millisekunden), gibt Dict mit Integer-Keys zurück
+    return werte_pro_level_laden("zeiten")
 
 
 def punktzahlen_speichern(punktzahlen):
-    # Speichert Punktzahlen in JSON-Datei
-    datei = open(PUNKTZAHLEN_DATEI, "w")
-    json.dump(punktzahlen, datei, indent=2)
-    datei.close()
+    # Speichert die Punktzahlen, die Zeiten bleiben erhalten
+    daten = alle_daten_laden()
+    daten["punktzahlen"] = punktzahlen
+    alle_daten_speichern(daten)
+
+
+def zeiten_speichern(zeiten):
+    # Speichert die Zeiten, die Punktzahlen bleiben erhalten
+    daten = alle_daten_laden()
+    daten["zeiten"] = zeiten
+    alle_daten_speichern(daten)
 
 
 def beste_punktzahl_aktualisieren(level_id, neue_punktzahl):
@@ -159,5 +193,16 @@ def beste_punktzahl_aktualisieren(level_id, neue_punktzahl):
     if neue_punktzahl > alte_punktzahl:
         punktzahlen[level_id] = neue_punktzahl
         punktzahlen_speichern(punktzahlen)
+        return True
+    return False
+
+
+def beste_zeit_aktualisieren(level_id, neue_zeit):
+    # Speichert die Zeit wenn sie besser (kleiner) als die bisherige ist
+    zeiten = zeiten_laden()
+    alte_zeit = zeiten.get(level_id, 0)
+    if alte_zeit == 0 or neue_zeit < alte_zeit:
+        zeiten[level_id] = neue_zeit
+        zeiten_speichern(zeiten)
         return True
     return False

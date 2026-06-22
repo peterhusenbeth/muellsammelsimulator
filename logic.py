@@ -6,6 +6,20 @@ def gesamte_punktzahl_berechnen(punktzahlen):
     return sum(punktzahlen.values())
 
 
+def gesamte_zeit_berechnen(zeiten):
+    # Addiert alle Levelzeiten zusammen (in Millisekunden)
+    return sum(zeiten.values())
+
+
+def abgeschlossene_level_zaehlen(zeiten):
+    # Zählt wie viele Level schon geschafft wurden (Zeit groesser als 0)
+    anzahl = 0
+    for zeit in zeiten.values():
+        if zeit > 0:
+            anzahl = anzahl + 1
+    return anzahl
+
+
 def level_auswaehlen(level_id, punktzahlen):
     # Wird aufgerufen wenn ein Level-Knopf gedrückt wird
     level_name = LEVELS[level_id]["name"]
@@ -45,7 +59,18 @@ def gegenstand_pruefen(gegenstand_typ, ziel_ecke):
         ergebnis["punkte"] = 5
     if not ergebnis["richtig"]:
         ergebnis["leben"] = -1
+        ergebnis["punkte"] = -2
     return ergebnis
+
+
+def zeit_text(millisekunden):
+    # Wandelt Millisekunden in den Text MM:SS:mmm um
+    ganze_sekunden = millisekunden // 1000
+    minuten = ganze_sekunden // 60
+    rest_sekunden = ganze_sekunden % 60
+    millis = millisekunden % 1000
+    muster = "{0:02d}:{1:02d}:{2:03d}"
+    return muster.format(minuten, rest_sekunden, millis)
 
 
 def spiel_beendet(leben, verbleibend):
