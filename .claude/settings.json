@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile:*)",
+      "Bash(python3 -c:*)",
+      "Bash(python3 main.py:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(rm -f punktzahlen.json)"
+    ]
+  }
+}

@@ -1,3 +1,12 @@
+import sys
+import math
+if sys.platform != "linux":
+    from kivy.config import Config
+    #Config.set("graphics", "position", "custom")
+    #Config.set("graphics", "left", 630)
+    #Config.set("graphics", "top", 1441)
+    Config.set("graphics", "fullscreen", "auto")
+
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.button import Button
@@ -10,8 +19,14 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.utils import platform
+from kivy.uix.scatter import Scatter
+from kivy.properties import NumericProperty
 from data import LEVELS, GEGENSTAENDE, punktzahlen_laden, beste_punktzahl_aktualisieren
 from logic import gesamte_punktzahl_berechnen, level_auswaehlen
+
+DESIGN_BREITE = 2000
+DESIGN_HOEHE = 1200
+BASIS_GROESSE = 100
 from logic import spiel_starten, ecke_erkennen, gegenstand_pruefen, spiel_beendet
 
 
@@ -30,12 +45,16 @@ class ErgebnisOverlay(FloatLayout):
 
 
 class GegenstandWidget(Image):
+    # Drehwinkel in Grad, wird im spiel.kv zum Drehen des Bildes benutzt
+    drehung = NumericProperty(0)
+
     def __init__(self):
         super().__init__()
         self.gegenstand_typ = ""
         self.gegenstand_name = ""
         self.start_x = 0
         self.start_y = 0
+        self.bewegung = None
 
 
 class MenuBildschirm(Screen):
@@ -151,35 +170,41 @@ class SpielBildschirm(Screen):
         self.punktzahl = 0
         self.gegenstand_widgets = []
         self.ergebnis_overlay = None
+        self.aktiver_touch_id = None
+        self.aktives_widget = None
+        self.touch_offset_x = 0
+        self.touch_offset_y = 0
 
     def on_touch_down(self, touch):
         # Startet das Ziehen eines Gegenstands
         if self.ergebnis_overlay is not None:
             return super().on_touch_down(touch)
+        if self.aktiver_touch_id is not None:
+            return super().on_touch_down(touch)
         for widget in self.gegenstand_widgets:
             if widget.collide_point(touch.x, touch.y):
-                touch.grab(self)
-                touch.ud["widget"] = widget
-                touch.ud["offset_x"] = widget.x - touch.x
-                touch.ud["offset_y"] = widget.y - touch.y
+                self.aktiver_touch_id = touch.uid
+                self.aktives_widget = widget
+                Animation.cancel_all(widget)
+                self.touch_offset_x = widget.x - touch.x
+                self.touch_offset_y = widget.y - touch.y
                 return True
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch):
         # Bewegt den Gegenstand mit dem Finger
-        if touch.grab_current == self and "widget" in touch.ud:
-            widget = touch.ud["widget"]
-            widget.x = touch.x + touch.ud["offset_x"]
-            widget.y = touch.y + touch.ud["offset_y"]
+        if touch.uid == self.aktiver_touch_id:
+            self.aktives_widget.x = touch.x + self.touch_offset_x
+            self.aktives_widget.y = touch.y + self.touch_offset_y
             return True
         return super().on_touch_move(touch)
 
     def on_touch_up(self, touch):
         # Lässt den Gegenstand los und prüft die Position
-        if touch.grab_current == self and "widget" in touch.ud:
-            touch.ungrab(self)
-            widget = touch.ud["widget"]
-            self.gegenstand_abgelegt(widget)
+        if touch.uid == self.aktiver_touch_id:
+            self.gegenstand_abgelegt(self.aktives_widget)
+            self.aktiver_touch_id = None
+            self.aktives_widget = None
             return True
         return super().on_touch_up(touch)
 
@@ -199,6 +224,7 @@ class SpielBildschirm(Screen):
     def alle_gegenstaende_entfernen(self):
         # Entfernt alle Gegenstands-Widgets vom Bildschirm
         for widget in self.gegenstand_widgets:
+            Animation.cancel_all(widget)
             if widget.parent is not None:
                 widget.parent.remove_widget(widget)
         self.gegenstand_widgets = []
@@ -211,6 +237,7 @@ class SpielBildschirm(Screen):
             widget = self.gegenstand_widget_erstellen(daten)
             spielfeld.add_widget(widget)
             self.gegenstand_widgets.append(widget)
+            self.bewegung_starten(widget)
 
     def gegenstand_widget_erstellen(self, daten):
         # Erstellt ein einzelnes ziehbares Gegenstands-Widget
@@ -218,20 +245,64 @@ class SpielBildschirm(Screen):
         widget.source = daten["bild"]
         widget.gegenstand_typ = daten["typ"]
         widget.gegenstand_name = daten["name"]
-        widget.x = daten["pos_x"] * Window.width
-        widget.y = daten["pos_y"] * Window.height
+        widget.bewegung = daten["bewegung"]
+        widget.drehung = daten["drehung"]
+        seite = BASIS_GROESSE * daten["groesse"]
+        widget.size = (seite, seite)
+        widget.x = daten["pos_x"] * DESIGN_BREITE
+        widget.y = daten["pos_y"] * DESIGN_HOEHE
         widget.start_x = widget.x
         widget.start_y = widget.y
         return widget
 
+    def bewegung_starten(self, widget):
+        # Startet die Bewegung passend zur Flagge des Gegenstands
+        if widget.bewegung == "huepfen":
+            self.huepfen_starten(widget)
+        elif widget.bewegung == "schwingen":
+            self.schwingen_starten(widget)
+        elif widget.bewegung == "kreisen":
+            self.kreisen_starten(widget)
+
+    def huepfen_starten(self, widget):
+        # Lässt den Gegenstand auf und ab hüpfen
+        animation = Animation(y=widget.start_y + 50, duration=0.5)
+        animation = animation + Animation(y=widget.start_y, duration=0.5)
+        animation.repeat = True
+        animation.start(widget)
+
+    def schwingen_starten(self, widget):
+        # Lässt den Gegenstand nach links und rechts schwingen
+        animation = Animation(x=widget.start_x - 30, duration=0.5)
+        animation = animation + Animation(x=widget.start_x + 30, duration=0.7)
+        animation = animation + Animation(x=widget.start_x, duration=0.3)
+        animation.repeat = True
+        animation.start(widget)
+
+    def kreisen_starten(self, widget):
+        # Lässt den Gegenstand in einem runden Kreis fliegen
+        animation = None
+        schritt = 1
+        while schritt <= 12:
+            winkel = 2 * math.pi * schritt / 12
+            ziel_x = widget.start_x + 30 * math.cos(winkel)
+            ziel_y = widget.start_y + 30 * math.sin(winkel)
+            teil = Animation(x=ziel_x, y=ziel_y, duration=0.15)
+            if animation is None:
+                animation = teil
+            else:
+                animation = animation + teil
+            schritt = schritt + 1
+        animation.repeat = True
+        animation.start(widget)
+
     def gegenstand_abgelegt(self, widget):
         # Prüft wo der Gegenstand abgelegt wurde und wertet aus
-        rel_x = widget.center_x / Window.width
-        rel_y = widget.center_y / Window.height
+        rel_x = widget.center_x / DESIGN_BREITE
+        rel_y = widget.center_y / DESIGN_HOEHE
         ecke = ecke_erkennen(rel_x, rel_y)
         if ecke == "keine":
-            widget.x = widget.start_x
-            widget.y = widget.start_y
+            self.gegenstand_zuruecksetzen(widget)
             return
         ergebnis = gegenstand_pruefen(widget.gegenstand_typ, ecke)
         self.punktzahl = self.punktzahl + ergebnis["punkte"]
@@ -240,10 +311,15 @@ class SpielBildschirm(Screen):
             widget.parent.remove_widget(widget)
             self.gegenstand_widgets.remove(widget)
         else:
-            widget.x = widget.start_x
-            widget.y = widget.start_y
+            self.gegenstand_zuruecksetzen(widget)
         self.anzeigen_aktualisieren()
         self.ende_pruefen()
+
+    def gegenstand_zuruecksetzen(self, widget):
+        # Setzt den Gegenstand an seinen Platz zurück und startet die Bewegung neu
+        widget.x = widget.start_x
+        widget.y = widget.start_y
+        self.bewegung_starten(widget)
 
     def anzeigen_aktualisieren(self):
         # Aktualisiert Leben- und Punktzahl-Anzeige
@@ -320,24 +396,46 @@ class SpielBildschirm(Screen):
         self.manager.current = "menu"
 
 
-class MuelleSammelSimulatorApp(App):
+class MuellSammelSimulatorApp(App):
     def build(self):
         # Startet die App und lädt beide Bildschirme
         Builder.load_file("menu.kv")
         Builder.load_file("spiel.kv")
-        if platform != "android":
-            Window.size = (2000, 1200)
         Window.orientation = "landscape"
         sm = ScreenManager()
         sm.transition = FadeTransition()
         sm.transition.duration = 0.2
+        sm.size = (DESIGN_BREITE, DESIGN_HOEHE)
+        sm.size_hint = (None, None)
         menu = MenuBildschirm()
         menu.name = "menu"
         spiel = SpielBildschirm()
         spiel.name = "spiel"
         sm.add_widget(menu)
         sm.add_widget(spiel)
-        return sm
+        if platform == "android":
+            return sm
+        return self.skalierung_erstellen(sm)
+
+    def skalierung_erstellen(self, sm):
+        # Skaliert die 2000x1200 Design-Auflösung auf den Mac-Bildschirm
+        faktor = min(Window.width / DESIGN_BREITE, Window.height / DESIGN_HOEHE)
+        skalierung = Scatter()
+        skalierung.do_rotation = False
+        skalierung.do_translation = False
+        skalierung.do_scale = False
+        skalierung.scale = faktor
+        skalierung.size = (DESIGN_BREITE, DESIGN_HOEHE)
+        skalierung.size_hint = (None, None)
+        sichtbare_breite = DESIGN_BREITE * faktor
+        sichtbare_hoehe = DESIGN_HOEHE * faktor
+        x_versatz = (Window.width - sichtbare_breite) / 2
+        y_versatz = (Window.height - sichtbare_hoehe) / 2
+        skalierung.pos = (x_versatz, y_versatz)
+        skalierung.add_widget(sm)
+        wurzel = FloatLayout()
+        wurzel.add_widget(skalierung)
+        return wurzel
 
     def on_start(self):
         # Navigationsleiste auf Android verstecken
@@ -360,4 +458,4 @@ class MuelleSammelSimulatorApp(App):
 
 
 if __name__ == "__main__":
-    MuelleSammelSimulatorApp().run()
+    MuellSammelSimulatorApp().run()
