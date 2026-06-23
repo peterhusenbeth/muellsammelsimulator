@@ -79,11 +79,10 @@
 
 <MenuBildschirm>:
     FloatLayout:
-        canvas.before:
-            Rectangle:
-                source: 'assets/menu_hintergrund.jpg'
-                size: self.size
-                pos: self.pos
+        Image:
+            source: 'assets/menu_hintergrund.jpeg'
+            fit_mode: 'cover'
+            size_hint: 1, 1
 
         # Titel - zentriert oben
         Label:
@@ -93,15 +92,27 @@
             bold: True
             color: colors('#1976D2')
             size_hint: None, None
-            size: 800, 100
+            size: 1200, 140
             pos_hint: {'center_x': 0.5, 'top': 0.9}
+            canvas.before:
+                Color:
+                    rgba: colors('#E3F2FD')
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [15,]
+                Color:
+                    rgba: colors('#1976D2')
+                Line:
+                    rectangle: (self.x, self.y, self.width, self.height)
+                    width: 3
 
         # Level-Container - zentriert
         FloatLayout:
             id: levels_container
             size_hint: None, None
             size: 1300, 580
-            pos_hint: {'center_x': 0.5, 'center_y': 0.58}
+            pos_hint: {'center_x': 0.525, 'center_y': 0.58}
 
             BoxLayout:
                 id: left_column
@@ -126,7 +137,7 @@
             id: bonus_container
             size_hint: None, None
             size: 1300, 0
-            pos_hint: {'center_x': 0.5, 'top': 0.31}
+            pos_hint: {'center_x': 0.525, 'top': 0.31}
 
             BoxLayout:
                 id: bonus_left

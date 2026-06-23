@@ -801,24 +801,8 @@ class SpielBildschirm(Screen):
         Clock.schedule_once(self.ergebnis_zum_menue, 0.2)
 
     def ergebnis_zum_menue(self, _dt):
-        # Blendet den Bildschirm dunkel aus und wechselt zum Menü
-        abdunklung = FloatLayout()
-        abdunklung.size_hint = (1, 1)
-        abdunklung.opacity = 0
-        from kivy.graphics import Color, Rectangle
-        abdunklung.canvas.add(Color(0, 0, 0, 1))
-        abdunklung.canvas.add(Rectangle(size=(DESIGN_BREITE, DESIGN_HOEHE)))
-        self.ids.spielfeld.add_widget(abdunklung)
-        self.abdunklung = abdunklung
-        anim = Animation(opacity=1, duration=0.4)
-        anim.bind(on_complete=self.nach_abdunklung_wechseln)
-        anim.start(abdunklung)
-
-    def nach_abdunklung_wechseln(self, _anim, _widget):
-        # Wechselt zum Menü nachdem der Bildschirm dunkel ist
-        self.ids.spielfeld.remove_widget(self.abdunklung)
-        self.abdunklung = None
-        self.manager.transition = FadeTransition(duration=0.3)
+        # Wechselt zum Menü
+        self.manager.transition = FadeTransition(duration=0.15)
         self.zurueck_zum_menue()
 
     def menue_knopf_gedrueckt(self, knopf):

@@ -17,11 +17,10 @@
 <EinkaufsladenBildschirm>:
     FloatLayout:
         id: shop_root
-        canvas.before:
-            Rectangle:
-                source: 'assets/einkaufsladen_hintergrund.jpg'
-                size: self.size
-                pos: self.pos
+        Image:
+            source: 'assets/einkaufsladen_hintergrund.jpg'
+            fit_mode: 'cover'
+            size_hint: 1, 1
 
         # Menü-Button oben links
         Button:
