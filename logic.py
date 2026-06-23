@@ -1,6 +1,13 @@
-from data import LEVELS, punktzahlen_laden, punktzahlen_speichern
+import time
+from data import LEVELS, GEGENSTAENDE
+from data import beste_punktzahl_aktualisieren, beste_zeit_aktualisieren
+
+# Spielzustand — logic schreibt, main liest
+zustand = {}
 
 
+
+###### Menü-Logik ######
 def gesamte_punktzahl_berechnen(punktzahlen):
     # Berechnet die Gesamtpunktzahl aus allen Level-Highscores
     return sum(punktzahlen.values())
@@ -26,13 +33,29 @@ def level_auswaehlen(level_id, punktzahlen):
     print("Level " + str(level_id) + " ausgewaehlt: " + level_name)
 
 
+
+###### Spiel-Logik ######
 def spiel_starten(level_id):
-    # Gibt den Anfangszustand eines Levels zurück
-    zustand = {}
+    # Setzt den Spielzustand auf Anfangswerte zurück
+    zustand["level_id"] = level_id
     zustand["leben"] = 3
     zustand["punktzahl"] = 0
-    zustand["level_id"] = level_id
-    return zustand
+    zustand["start_zeit"] = 0.0
+    zustand["laufende_zeit"] = 0.0
+    zustand["anzahl_verbleibend"] = len(GEGENSTAENDE[level_id])
+    zustand["beendet"] = False
+    zustand["gewonnen"] = False
+
+
+def timer_starten():
+    # Setzt die Startzeit auf jetzt
+    zustand["start_zeit"] = time.monotonic()
+    zustand["laufende_zeit"] = 0.0
+
+
+def timer_aktualisieren():
+    # Berechnet die vergangene Zeit seit dem Start
+    zustand["laufende_zeit"] = time.monotonic() - zustand["start_zeit"]
 
 
 def ecke_erkennen(rel_x, rel_y):
@@ -63,20 +86,36 @@ def gegenstand_pruefen(gegenstand_typ, ziel_ecke):
     return ergebnis
 
 
-def zeit_text(millisekunden):
-    # Wandelt Millisekunden in den Text MM:SS:mmm um
-    ganze_sekunden = millisekunden // 1000
-    minuten = ganze_sekunden // 60
-    rest_sekunden = ganze_sekunden % 60
-    millis = millisekunden % 1000
-    muster = "{0:02d}:{1:02d}:{2:03d}"
-    return muster.format(minuten, rest_sekunden, millis)
+def gegenstand_ablegen(gegenstand_typ, rel_x, rel_y):
+    # Verarbeitet das Ablegen eines Gegenstands und aktualisiert den Zustand
+    ecke = ecke_erkennen(rel_x, rel_y)
+    if ecke == "keine":
+        return {"richtig": False, "ecke": "keine"}
+    pruefung = gegenstand_pruefen(gegenstand_typ, ecke)
+    zustand["punktzahl"] = zustand["punktzahl"] + pruefung["punkte"]
+    if zustand["punktzahl"] < 0:
+        zustand["punktzahl"] = 0
+    zustand["leben"] = zustand["leben"] + pruefung["leben"]
+    if pruefung["richtig"]:
+        zustand["anzahl_verbleibend"] = zustand["anzahl_verbleibend"] - 1
+    ende_pruefen()
+    return {"richtig": pruefung["richtig"], "ecke": ecke}
 
 
-def spiel_beendet(leben, verbleibend):
-    # Prüft ob das Spiel vorbei ist
-    if leben <= 0:
-        return True
-    if verbleibend <= 0:
-        return True
-    return False
+def ende_pruefen():
+    # Setzt die Flags wenn das Spiel vorbei ist
+    if zustand["leben"] <= 0:
+        zustand["beendet"] = True
+        zustand["gewonnen"] = False
+    if zustand["anzahl_verbleibend"] <= 0:
+        zustand["beendet"] = True
+        zustand["gewonnen"] = True
+
+
+def ergebnis_speichern():
+    # Speichert Punktzahl und (bei Sieg) die Zeit
+    level_id = zustand["level_id"]
+    beste_punktzahl_aktualisieren(level_id, zustand["punktzahl"])
+    if zustand["gewonnen"]:
+        zeit_ms = int(zustand["laufende_zeit"] * 1000)
+        beste_zeit_aktualisieren(level_id, zeit_ms)
