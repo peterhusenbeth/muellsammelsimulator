@@ -871,10 +871,16 @@ class MuellSammelSimulatorApp(App):
     def on_start(self):
         # Navigationsleiste auf Android verstecken
         if platform == "android":
-            Clock.schedule_once(self.android_vollbild, 1)
+            Clock.schedule_once(self.android_vollbild, 0.5)
+            Clock.schedule_once(self.android_vollbild, 2)
+
+    def on_resume(self):
+        # Nach Pause erneut Vollbild setzen
+        if platform == "android":
+            Clock.schedule_once(self.android_vollbild, 0.5)
 
     def android_vollbild(self, _dt):
-        # Versteckt die Android-Navigationsleiste
+        # Versteckt die Android-Navigationsleiste zuverlässig
         try:
             from jnius import autoclass # type: ignore
             PythonActivity = autoclass("org.kivy.android.PythonActivity")
@@ -883,6 +889,9 @@ class MuellSammelSimulatorApp(App):
             flags = View.SYSTEM_UI_FLAG_FULLSCREEN
             flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
             flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
         except Exception as fehler:
             print("Vollbild-Fehler: " + str(fehler))
