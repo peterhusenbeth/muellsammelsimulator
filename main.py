@@ -136,7 +136,7 @@ class MenuBildschirm(Screen):
             score = self.punktzahlen.get(level_id, 0)
             zeit = self.zeiten.get(level_id, 0)
             button = self.level_button_erstellen(level_id, level_data["name"], score, zeit)
-            if zaehler < 5:
+            if zaehler % 2 == 0:
                 left_col.add_widget(button)
             else:
                 right_col.add_widget(button)
@@ -870,6 +870,39 @@ class MuellSammelSimulatorApp(App):
         wurzel.add_widget(skalierung)
         return wurzel
 
+    def on_start(self):
+        # Navigationsleiste auf Android verstecken
+        if platform == "android":
+            Clock.schedule_once(self.android_vollbild, 0.5)
+
+    def on_resume(self):
+        # Nach Pause erneut Vollbild setzen
+        if platform == "android":
+            Clock.schedule_once(self.android_vollbild, 0.5)
+
+    def android_vollbild(self, _dt):
+        # Ruft die Vollbild-Funktion auf dem Android-UI-Thread auf
+        try:
+            from android.runnable import run_on_ui_thread
+            vollbild_funktion = run_on_ui_thread(self.vollbild_setzen)
+            vollbild_funktion()
+        except Exception as fehler:
+            print("Vollbild-Fehler: " + str(fehler))
+
+    def vollbild_setzen(self):
+        # Versteckt Status- und Navigationsleiste komplett
+        from jnius import autoclass
+        View = autoclass("android.view.View")
+        PythonActivity = autoclass("org.kivy.android.PythonActivity")
+        aktivitaet = PythonActivity.mActivity
+        view = aktivitaet.getWindow().getDecorView()
+        flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        flags = flags | View.SYSTEM_UI_FLAG_FULLSCREEN
+        flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        view.setSystemUiVisibility(flags)
 
 
 if __name__ == "__main__":
