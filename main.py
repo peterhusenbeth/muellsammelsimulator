@@ -884,17 +884,42 @@ class MuellSammelSimulatorApp(App):
         try:
             from jnius import autoclass # type: ignore
             PythonActivity = autoclass("org.kivy.android.PythonActivity")
-            View = autoclass("android.view.View")
             aktivitaet = PythonActivity.mActivity
+            fenster = aktivitaet.getWindow()
+            self.android_vollbild_neu(fenster)
+        except Exception as fehler:
+            print("Vollbild-Fehler: " + str(fehler))
+
+    def android_vollbild_neu(self, fenster):
+        # Nutzt WindowInsetsController (Android 11+)
+        try:
+            from jnius import autoclass # type: ignore
+            WindowInsetsController = autoclass(
+                "android.view.WindowInsetsController")
+            WindowInsets = autoclass("android.view.WindowInsets$Type")
+            controller = fenster.getInsetsController()
+            leisten = WindowInsets.systemBars()
+            controller.hide(leisten)
+            controller.setSystemBarsBehavior(
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE)
+        except Exception as fehler:
+            print("Neues Vollbild fehlgeschlagen: " + str(fehler))
+            self.android_vollbild_alt(fenster)
+
+    def android_vollbild_alt(self, fenster):
+        # Fallback für ältere Android-Versionen (vor Android 11)
+        try:
+            from jnius import autoclass # type: ignore
+            View = autoclass("android.view.View")
             flags = View.SYSTEM_UI_FLAG_FULLSCREEN
             flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
             flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            aktivitaet.getWindow().getDecorView().setSystemUiVisibility(flags)
+            fenster.getDecorView().setSystemUiVisibility(flags)
         except Exception as fehler:
-            print("Vollbild-Fehler: " + str(fehler))
+            print("Vollbild-Fallback-Fehler: " + str(fehler))
 
 
 if __name__ == "__main__":
