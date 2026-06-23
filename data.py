@@ -3,16 +3,16 @@ import os
 
 # Level-Definitionen
 LEVELS = {
-    1: {"name": "Strand", "bild": "assets/level_01_strand.jpg"},
-    2: {"name": "Wald", "bild": "assets/level_02_wald.jpg"},
-    3: {"name": "Prärie", "bild": "assets/level_03_praerie.jpg"},
-    4: {"name": "Feld", "bild": "assets/level_04_feld.jpg"},
-    5: {"name": "Berg", "bild": "assets/level_05_berg.jpg"},
-    6: {"name": "See", "bild": "assets/level_06_see.jpg"},
-    7: {"name": "Wüste", "bild": "assets/level_07_wueste.jpg"},
-    8: {"name": "Schnee", "bild": "assets/level_08_schnee.jpg"},
-    9: {"name": "Dschungel", "bild": "assets/level_09_dschungel.jpg"},
-    10: {"name": "Stadt", "bild": "assets/level_10_stadt.jpg"},
+    1: {"name": "Strand", "bild": "assets/level_01_strand.jpeg"},
+    2: {"name": "Wald", "bild": "assets/level_02_wald.jpeg"},
+    3: {"name": "Prärie", "bild": "assets/level_03_praerie.jpeg"},
+    4: {"name": "Feld", "bild": "assets/level_04_feld.jpeg"},
+    5: {"name": "Berg", "bild": "assets/level_05_berg.jpeg"},
+    6: {"name": "See", "bild": "assets/level_06_see.jpeg"},
+    7: {"name": "Wüste", "bild": "assets/level_07_wueste.jpeg"},
+    8: {"name": "Schnee", "bild": "assets/level_08_schnee.jpeg"},
+    9: {"name": "Dschungel", "bild": "assets/level_09_dschungel.jpeg"},
+    10: {"name": "Stadt", "bild": "assets/level_10_stadt.jpeg"},
 }
 
 # Gegenstände pro Level (je 8 Stück, 4 Müll + 4 Natur)
@@ -121,6 +121,31 @@ GEGENSTAENDE = {
     ],
 }
 
+# Kaufbare Levels (werden nach Kauf freigeschaltet)
+KAUFBARE_LEVELS = {
+    11: {"name": "Kanalisation", "bild": "assets/level_11_kanalisation.jpeg", "preis": 100},
+    12: {"name": "Spielplatz", "bild": "assets/level_12_spielplatz.jpeg", "preis": 200},
+    13: {"name": "???", "bild": "assets/level_13_unbekannt.jpeg", "preis": 300},
+    14: {"name": "???", "bild": "assets/level_14_unbekannt.jpeg", "preis": 400},
+    15: {"name": "???", "bild": "assets/level_15_unbekannt.jpeg", "preis": 500},
+}
+
+# Kaufbare Einzelgegenstände (erscheinen als Bonus-Item im Ziel-Level)
+KAUFBARE_EINZEL_ITEMS = [
+    {"name": "Schuh", "typ": "muell", "bild": "assets/items/muell_schuh.png", "preis": 20, "ziel_level": 6, "pos_x": 0.85, "pos_y": 0.25, "groesse": 0.9, "bewegung": None, "drehung": 15},
+    {"name": "Fahrrad", "typ": "muell", "bild": "assets/items/muell_fahrrad.png", "preis": 30, "ziel_level": 1, "pos_x": 0.42, "pos_y": 0.12, "groesse": 2.0, "bewegung": None, "drehung": 0},
+    {"name": "Bildschirm", "typ": "muell", "bild": "assets/items/muell_bildschirm.png", "preis": 40, "ziel_level": 10, "pos_x": 0.28, "pos_y": 0.12, "groesse": 1.1, "bewegung": None, "drehung": 350},
+    {"name": "Tierschädel", "typ": "natur", "bild": "assets/items/natur_tierschaedel.png", "preis": 20, "ziel_level": 7, "pos_x": 0.20, "pos_y": 0.45, "groesse": 0.8, "bewegung": None, "drehung": 0},
+    {"name": "Ananas", "typ": "natur", "bild": "assets/items/natur_ananas.png", "preis": 30, "ziel_level": 9, "pos_x": 0.38, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    {"name": "Bienenstock", "typ": "natur", "bild": "assets/items/natur_bienenstock.png", "preis": 40, "ziel_level": 2, "pos_x": 0.40, "pos_y": 0.55, "groesse": 1.1, "bewegung": None, "drehung": 0},
+]
+
+# Alles Kaufbare zusammengefasst
+KAUFBARE_GEGENSTAENDE = {
+    "levels": KAUFBARE_LEVELS,
+    "items": KAUFBARE_EINZEL_ITEMS,
+}
+
 PUNKTZAHLEN_DATEI = "punktzahlen.json"
 
 
@@ -133,15 +158,17 @@ def standard_punktzahlen():
 
 
 def alle_daten_laden():
-    # Lädt die ganze Speicherdatei (Punkte und Zeiten)
+    # Lädt die ganze Speicherdatei (Punkte, Zeiten und Einkäufe)
     if not os.path.exists(PUNKTZAHLEN_DATEI):
-        return {"punktzahlen": {}, "zeiten": {}}
+        return {"punktzahlen": {}, "zeiten": {}, "einkaeufe": {"levels": [], "items": []}}
     datei = open(PUNKTZAHLEN_DATEI, "r")
     inhalt = json.load(datei)
     datei.close()
-    # Alte Dateien hatten nur die Punkte direkt drin - wir holen sie ab
+    # Alte Dateien hatten nur die Punkte direkt drin
     if "punktzahlen" not in inhalt:
-        return {"punktzahlen": inhalt, "zeiten": {}}
+        return {"punktzahlen": inhalt, "zeiten": {}, "einkaeufe": {"levels": [], "items": []}}
+    if "einkaeufe" not in inhalt:
+        inhalt["einkaeufe"] = {"levels": [], "items": []}
     return inhalt
 
 
@@ -156,8 +183,9 @@ def werte_pro_level_laden(schluessel):
     # Lädt einen Teil (z.B. "punktzahlen" oder "zeiten") mit Zahlen-Keys
     daten = alle_daten_laden()
     rohe_werte = daten.get(schluessel, {})
+    alle_levels = aktive_levels_holen()
     werte = {}
-    for level_id in LEVELS.keys():
+    for level_id in alle_levels.keys():
         werte[level_id] = rohe_werte.get(str(level_id), 0)
     return werte
 
@@ -206,3 +234,74 @@ def beste_zeit_aktualisieren(level_id, neue_zeit):
         zeiten_speichern(zeiten)
         return True
     return False
+
+
+def einkaeufe_laden():
+    # Lädt die Einkäufe aus der Speicherdatei
+    daten = alle_daten_laden()
+    return daten.get("einkaeufe", {"levels": [], "items": []})
+
+
+def einkaeufe_speichern(einkaeufe):
+    # Speichert die Einkäufe in die Speicherdatei
+    daten = alle_daten_laden()
+    daten["einkaeufe"] = einkaeufe
+    alle_daten_speichern(daten)
+
+
+def einkauf_durchfuehren(name, kategorie):
+    # Fügt einen Kauf hinzu (kategorie ist "levels" oder "items")
+    einkaeufe = einkaeufe_laden()
+    if name not in einkaeufe[kategorie]:
+        einkaeufe[kategorie].append(name)
+        einkaeufe_speichern(einkaeufe)
+
+
+def ist_gekauft(name, einkaeufe):
+    # Prüft ob ein Level oder Item schon gekauft wurde
+    if name in einkaeufe["levels"]:
+        return True
+    if name in einkaeufe["items"]:
+        return True
+    return False
+
+
+def aktive_levels_holen():
+    # Gibt alle spielbaren Levels zurück (Basis + gekaufte)
+    ergebnis = {}
+    for level_id in LEVELS:
+        ergebnis[level_id] = LEVELS[level_id]
+    einkaeufe = einkaeufe_laden()
+    for level_id in KAUFBARE_LEVELS:
+        if level_id in einkaeufe["levels"]:
+            ergebnis[level_id] = KAUFBARE_LEVELS[level_id]
+    return ergebnis
+
+
+def aktive_gegenstaende_holen(level_id):
+    # Gibt Gegenstände für ein Level zurück, inklusive gekaufter Bonus-Items
+    basis = []
+    if level_id in GEGENSTAENDE:
+        for item in GEGENSTAENDE[level_id]:
+            basis.append(item)
+    einkaeufe = einkaeufe_laden()
+    for item in KAUFBARE_EINZEL_ITEMS:
+        if item["ziel_level"] == level_id and item["name"] in einkaeufe["items"]:
+            basis.append(item)
+    return basis
+
+
+def guthaben_berechnen(punktzahlen, einkaeufe):
+    # Berechnet das Guthaben (Gesamtpunktzahl minus Ausgaben)
+    gesamt = 0
+    for punkte in punktzahlen.values():
+        gesamt = gesamt + punkte
+    ausgaben = 0
+    for level_id in einkaeufe["levels"]:
+        if level_id in KAUFBARE_LEVELS:
+            ausgaben = ausgaben + KAUFBARE_LEVELS[level_id]["preis"]
+    for item_name in einkaeufe["items"]:
+        for item in KAUFBARE_EINZEL_ITEMS:
+            if item["name"] == item_name:
+                ausgaben = ausgaben + item["preis"]
+    return gesamt - ausgaben

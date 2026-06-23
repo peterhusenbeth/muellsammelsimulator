@@ -20,6 +20,34 @@
             rectangle: (self.x, self.y, self.width, self.height)
             width: 3
 
+<LevelContainerBonus>:
+    canvas.before:
+        Color:
+            rgba: colors('#D1C4E9')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+        Color:
+            rgba: colors('#1976D2')
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 3
+
+<ScoreBoxBonus>:
+    canvas.before:
+        Color:
+            rgba: colors('#D1C4E9')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [8,]
+        Color:
+            rgba: colors('#1976D2')
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 2
+
 <ScoreBox>:
     canvas.before:
         Color:
@@ -73,7 +101,7 @@
             id: levels_container
             size_hint: None, None
             size: 1300, 580
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            pos_hint: {'center_x': 0.5, 'center_y': 0.58}
 
             BoxLayout:
                 id: left_column
@@ -92,6 +120,52 @@
                 pos_hint: {'x': 0.5, 'center_y': 0.5}
                 spacing: 35
                 padding: 10
+
+        # Bonus-Level-Container (gekaufte Levels)
+        FloatLayout:
+            id: bonus_container
+            size_hint: None, None
+            size: 1300, 0
+            pos_hint: {'center_x': 0.5, 'top': 0.31}
+
+            BoxLayout:
+                id: bonus_left
+                orientation: 'vertical'
+                size_hint: None, None
+                size: 620, self.parent.height
+                pos_hint: {'right': 0.5, 'top': 1}
+                spacing: 35
+                padding: 10
+
+            BoxLayout:
+                id: bonus_right
+                orientation: 'vertical'
+                size_hint: None, None
+                size: 620, self.parent.height
+                pos_hint: {'x': 0.5, 'top': 1}
+                spacing: 35
+                padding: 10
+
+        # Einkaufsladen-Button rechts
+        Button:
+            text: 'E\ni\nn\nk\na\nu\nf\ns\nl\na\nd\ne\nn'
+            font_size: 32
+            bold: True
+            line_height: 0.8
+            size_hint: None, None
+            size: 100, 500
+            pos_hint: {'right': 1, 'center_y': 0.5}
+            background_normal: ''
+            background_down: ''
+            background_color: colors('#D1C4E9')
+            color: colors('#4A148C')
+            canvas.after:
+                Color:
+                    rgba: colors('#7B1FA2')
+                Line:
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, 10)
+                    width: 3
+            on_press: root.einkaufsladen_oeffnen_geplant(self)
 
         # Gesamtzeit unten links
         InfoFeld:

@@ -1,5 +1,5 @@
 import time
-from data import LEVELS, GEGENSTAENDE
+from data import aktive_levels_holen, aktive_gegenstaende_holen
 from data import beste_punktzahl_aktualisieren, beste_zeit_aktualisieren
 
 # Spielzustand — logic schreibt, main liest
@@ -29,7 +29,8 @@ def abgeschlossene_level_zaehlen(zeiten):
 
 def level_auswaehlen(level_id, punktzahlen):
     # Wird aufgerufen wenn ein Level-Knopf gedrückt wird
-    level_name = LEVELS[level_id]["name"]
+    alle_levels = aktive_levels_holen()
+    level_name = alle_levels[level_id]["name"]
     print("Level " + str(level_id) + " ausgewaehlt: " + level_name)
 
 
@@ -42,7 +43,7 @@ def spiel_starten(level_id):
     zustand["punktzahl"] = 0
     zustand["start_zeit"] = 0.0
     zustand["laufende_zeit"] = 0.0
-    zustand["anzahl_verbleibend"] = len(GEGENSTAENDE[level_id])
+    zustand["anzahl_verbleibend"] = len(aktive_gegenstaende_holen(level_id))
     zustand["beendet"] = False
     zustand["gewonnen"] = False
 

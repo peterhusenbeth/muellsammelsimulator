@@ -164,9 +164,10 @@
                 bold: True
                 size_hint_x: 0.3
                 background_normal: ''
+                background_down: ''
                 background_color: colors('#FFCC80')
                 color: colors('#1976D2')
-                on_press: root.zurueck_zum_menue()
+                on_press: root.menue_knopf_gedrueckt(self)
                 canvas.after:
                     Color:
                         rgba: colors('#1976D2')

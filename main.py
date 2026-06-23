@@ -8,7 +8,7 @@ if sys.platform != "linux":
     Config.set("graphics", "fullscreen", "auto")
 
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition, SlideTransition
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -22,7 +22,10 @@ from kivy.utils import platform
 from kivy.uix.scatter import Scatter
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty
-from data import LEVELS, GEGENSTAENDE, punktzahlen_laden, zeiten_laden
+from data import LEVELS, punktzahlen_laden, zeiten_laden
+from data import KAUFBARE_LEVELS, KAUFBARE_EINZEL_ITEMS
+from data import einkaeufe_laden, einkauf_durchfuehren, ist_gekauft
+from data import aktive_levels_holen, aktive_gegenstaende_holen, guthaben_berechnen
 import logic
 from logic import gesamte_punktzahl_berechnen, level_auswaehlen
 from logic import gesamte_zeit_berechnen, abgeschlossene_level_zaehlen
@@ -44,6 +47,21 @@ def zeit_text(millisekunden):
     return muster.format(minuten, rest_sekunden, millis)
 
 
+def abdunkel_animation(widget):
+    # Dunkelt den Button kurz ab als Klick-Feedback
+    r = float(widget.background_color[0])
+    g = float(widget.background_color[1])
+    b = float(widget.background_color[2])
+    a = float(widget.background_color[3])
+    if a < 0.1:
+        a = 0.3
+    dunkel = [r * 0.6, g * 0.6, b * 0.6, a]
+    original = [r, g, b, float(widget.background_color[3])]
+    anim = Animation(background_color=dunkel, duration=0.08)
+    anim = anim + Animation(background_color=original, duration=0.08)
+    anim.start(widget)
+
+
 
 ###### Widget-Klassen ######
 
@@ -51,7 +69,20 @@ class LevelContainer(FloatLayout):
     pass
 
 
+class LevelContainerBonus(FloatLayout):
+    pass
+
+
 class ScoreBox(BoxLayout):
+    pass
+
+
+class ScoreBoxBonus(BoxLayout):
+    pass
+
+
+
+class ShopArtikel(FloatLayout):
     pass
 
 
@@ -108,6 +139,92 @@ class MenuBildschirm(Screen):
             else:
                 right_col.add_widget(button)
             zaehler = zaehler + 1
+        self.bonus_levels_erstellen()
+
+    def bonus_levels_erstellen(self):
+        # Zeigt gekaufte Bonus-Levels in zwei Spalten an
+        left = self.ids.bonus_left
+        right = self.ids.bonus_right
+        left.clear_widgets()
+        right.clear_widgets()
+        einkaeufe = einkaeufe_laden()
+        zaehler = 0
+        for level_id in sorted(KAUFBARE_LEVELS.keys()):
+            if level_id not in einkaeufe["levels"]:
+                continue
+            level_data = KAUFBARE_LEVELS[level_id]
+            score = self.punktzahlen.get(level_id, 0)
+            zeit = self.zeiten.get(level_id, 0)
+            button = self.bonus_button_erstellen(level_id, level_data["name"], score, zeit)
+            if zaehler % 2 == 0:
+                left.add_widget(button)
+            else:
+                right.add_widget(button)
+            zaehler = zaehler + 1
+        self.bonus_container_groesse_anpassen(zaehler)
+
+    def bonus_container_groesse_anpassen(self, anzahl):
+        # Passt die Höhe des Bonus-Containers an die Anzahl der Levels an
+        if anzahl == 0:
+            self.ids.bonus_container.height = 0
+            return
+        reihen = (anzahl + 1) // 2
+        hoehe = reihen * 60 + (reihen - 1) * 35 + 20
+        self.ids.bonus_container.height = hoehe
+
+    def bonus_button_erstellen(self, level_id, level_name, score, zeit):
+        # Baut einen Bonus-Level-Button mit lila Hintergrund
+        container = LevelContainerBonus()
+        container.size_hint = (None, None)
+        container.size = (500, 60)
+        container.level_id = level_id
+        inhalt = BoxLayout()
+        inhalt.orientation = "horizontal"
+        inhalt.size_hint = (1, 1)
+        inhalt.pos_hint = {"x": 0, "y": 0}
+        inhalt.padding = 8
+        inhalt.spacing = 0
+        blau = (0.09, 0.46, 0.82, 1)
+        inhalt.add_widget(self.erstelle_name_label(level_id, level_name, blau))
+        inhalt.add_widget(self.bonus_zeit_box(zeit))
+        inhalt.add_widget(self.bonus_punkte_box(score))
+        container.add_widget(inhalt)
+        container.add_widget(self.erstelle_klick_bereich())
+        return container
+
+    def bonus_zeit_box(self, zeit):
+        # Erstellt die Zeit-Box für Bonus-Levels mit lila Hintergrund
+        wrapper = FloatLayout()
+        wrapper.size_hint = (None, 1)
+        wrapper.width = 140
+        box = ScoreBoxBonus()
+        box.size_hint = (None, None)
+        box.size = (140, 40)
+        box.pos_hint = {"center_y": 0.5, "right": 1}
+        label = Label()
+        label.text = zeit_text(zeit)
+        label.font_size = 22
+        label.color = (0.09, 0.46, 0.82, 1)
+        box.add_widget(label)
+        wrapper.add_widget(box)
+        return wrapper
+
+    def bonus_punkte_box(self, score):
+        # Erstellt die Punkte-Box für Bonus-Levels mit lila Hintergrund
+        wrapper = FloatLayout()
+        wrapper.size_hint = (None, 1)
+        wrapper.width = 40
+        box = ScoreBoxBonus()
+        box.size_hint = (None, None)
+        box.size = (40, 40)
+        box.pos_hint = {"center_y": 0.5, "right": 1}
+        label = Label()
+        label.text = "{0}".format(score)
+        label.font_size = 30
+        label.color = (0.09, 0.46, 0.82, 1)
+        box.add_widget(label)
+        wrapper.add_widget(box)
+        return wrapper
 
     def erstelle_klick_bereich(self):
         # Erstellt den unsichtbaren Klick-Button über dem gesamten Container
@@ -119,12 +236,12 @@ class MenuBildschirm(Screen):
         btn.bind(on_press=self.bei_knopf_druck)
         return btn
 
-    def erstelle_name_label(self, level_id, level_name):
+    def erstelle_name_label(self, level_id, level_name, farbe):
         # Erstellt das Label mit Level-Nummer und Name
         label = Label()
         label.text = "{0} - {1}".format(level_id, level_name)
         label.font_size = 30
-        label.color = (0.09, 0.46, 0.82, 1)
+        label.color = farbe
         label.size_hint_x = 1
         return label
 
@@ -174,7 +291,8 @@ class MenuBildschirm(Screen):
         inhalt.pos_hint = {"x": 0, "y": 0}
         inhalt.padding = 8
         inhalt.spacing = 0
-        inhalt.add_widget(self.erstelle_name_label(level_id, level_name))
+        blau = (0.09, 0.46, 0.82, 1)
+        inhalt.add_widget(self.erstelle_name_label(level_id, level_name, blau))
         inhalt.add_widget(self.erstelle_zeit_box(zeit))
         inhalt.add_widget(self.erstelle_punkte_box(score))
         container.add_widget(inhalt)
@@ -186,9 +304,7 @@ class MenuBildschirm(Screen):
         container = instance.parent
         self.gewaehltes_level = container.level_id
         level_auswaehlen(self.gewaehltes_level, self.punktzahlen)
-        blink = Animation(opacity=0.5, duration=0.08)
-        blink = blink + Animation(opacity=1.0, duration=0.08)
-        blink.start(container)
+        abdunkel_animation(instance)
         Clock.schedule_once(self.level_oeffnen, 0.2)
 
     def level_oeffnen(self, _dt):
@@ -197,6 +313,18 @@ class MenuBildschirm(Screen):
         spiel.level_laden(self.gewaehltes_level)
         self.manager.current = "spiel"
 
+    def einkaufsladen_oeffnen_geplant(self, knopf):
+        # Zeigt Klick-Feedback und öffnet den Einkaufsladen
+        abdunkel_animation(knopf)
+        Clock.schedule_once(self.einkaufsladen_oeffnen, 0.2)
+
+    def einkaufsladen_oeffnen(self, _dt):
+        # Wechselt zum Einkaufsladen-Bildschirm mit Slide nach links
+        laden = self.manager.get_screen("einkaufsladen")
+        laden.artikel_anzeigen()
+        self.manager.transition = SlideTransition(direction="left", duration=0.3)
+        self.manager.current = "einkaufsladen"
+
     def gesamtpunktzahl_aktualisieren(self):
         # Aktualisiert die drei Übersichts-Felder unten (Level, Zeit, Punkte)
         total = gesamte_punktzahl_berechnen(self.punktzahlen)
@@ -204,9 +332,163 @@ class MenuBildschirm(Screen):
         gesamtzeit = gesamte_zeit_berechnen(self.zeiten)
         self.ids.total_time_label.text = "Gesamtzeit: " + zeit_text(gesamtzeit)
         fertige = abgeschlossene_level_zaehlen(self.zeiten)
-        anzahl = len(LEVELS)
+        alle_levels = aktive_levels_holen()
+        anzahl = len(alle_levels)
         text = "Levels abgeschlossen: {0}/{1}".format(fertige, anzahl)
         self.ids.levels_done_label.text = text
+
+
+###### Einkaufsladen-Bildschirm ######
+
+
+class EinkaufsladenBildschirm(Screen):
+    def __init__(self):
+        super().__init__()
+        Clock.schedule_once(self.ui_aufbauen, 0)
+
+    def ui_aufbauen(self, _dt):
+        # Baut die Shop-Oberfläche auf
+        self.artikel_anzeigen()
+
+    def artikel_anzeigen(self):
+        # Zeigt alle kaufbaren Artikel im Shop an
+        self.ids.level_reihe.clear_widgets()
+        self.ids.muell_reihe.clear_widgets()
+        self.ids.natur_reihe.clear_widgets()
+        einkaeufe = einkaeufe_laden()
+        punktzahlen = punktzahlen_laden()
+        guthaben = guthaben_berechnen(punktzahlen, einkaeufe)
+        self.ids.guthaben_label.text = "Guthaben: {0} Punkte".format(guthaben)
+        self.level_artikel_erstellen(einkaeufe, guthaben)
+        self.item_artikel_erstellen(einkaeufe, guthaben)
+
+    def level_artikel_erstellen(self, einkaeufe, guthaben):
+        # Erstellt die Kauf-Buttons für alle kaufbaren Levels
+        for level_id in sorted(KAUFBARE_LEVELS.keys()):
+            level = KAUFBARE_LEVELS[level_id]
+            name = "Level {0} - {1}".format(level_id, level["name"])
+            gekauft = level_id in einkaeufe["levels"]
+            leistbar = guthaben >= level["preis"]
+            artikel = self.shop_artikel_bauen(name, level["preis"], gekauft, leistbar, 0, 120)
+            artikel.size_hint_x = 1
+            artikel.kauf_name = level_id
+            artikel.kauf_kategorie = "levels"
+            artikel.kauf_preis = level["preis"]
+            self.ids.level_reihe.add_widget(artikel)
+
+    def item_artikel_erstellen(self, einkaeufe, guthaben):
+        # Erstellt die Kauf-Buttons für alle kaufbaren Gegenstände
+        for item in KAUFBARE_EINZEL_ITEMS:
+            gekauft = item["name"] in einkaeufe["items"]
+            leistbar = guthaben >= item["preis"]
+            artikel = self.shop_artikel_bauen(item["name"], item["preis"], gekauft, leistbar, 240, 90)
+            artikel.kauf_name = item["name"]
+            artikel.kauf_kategorie = "items"
+            artikel.kauf_preis = item["preis"]
+            if item["typ"] == "muell":
+                self.ids.muell_reihe.add_widget(artikel)
+            else:
+                self.ids.natur_reihe.add_widget(artikel)
+
+    def shop_artikel_bauen(self, name, preis, gekauft, leistbar, breite, hoehe):
+        # Baut einen einzelnen Shop-Artikel mit Name und Preis
+        artikel = ShopArtikel()
+        artikel.size_hint = (None, None)
+        artikel.size = (breite, hoehe)
+        farbe = self.artikel_farbe_bestimmen(gekauft, leistbar)
+        artikel.hintergrund_farbe = farbe
+        name_label = Label()
+        name_label.text = name
+        name_label.font_size = 24
+        name_label.bold = True
+        name_label.color = (0.29, 0.08, 0.55, 1)
+        name_label.pos_hint = {"center_x": 0.5, "center_y": 0.6}
+        artikel.add_widget(name_label)
+        preis_label = self.preis_label_erstellen(preis, gekauft)
+        artikel.add_widget(preis_label)
+        if not gekauft:
+            knopf = self.kauf_knopf_erstellen()
+            artikel.add_widget(knopf)
+        return artikel
+
+    def artikel_farbe_bestimmen(self, gekauft, leistbar):
+        # Gibt die Hintergrundfarbe für einen Shop-Artikel zurück
+        if gekauft:
+            return (0.78, 0.90, 0.78, 1)
+        if leistbar:
+            return (0.82, 0.77, 0.91, 1)
+        return (0.88, 0.88, 0.88, 1)
+
+    def preis_label_erstellen(self, preis, gekauft):
+        # Erstellt das Preis-Label oder "Gekauft"-Label
+        label = Label()
+        if gekauft:
+            label.text = "Gekauft!"
+            label.color = (0.10, 0.50, 0.10, 1)
+        else:
+            label.text = "{0} Punkte".format(preis)
+            label.color = (0.29, 0.08, 0.55, 1)
+        label.font_size = 20
+        label.pos_hint = {"center_x": 0.5, "center_y": 0.25}
+        return label
+
+    def kauf_knopf_erstellen(self):
+        # Erstellt den unsichtbaren Kauf-Button über einem Artikel
+        knopf = Button()
+        knopf.size_hint = (1, 1)
+        knopf.pos_hint = {"x": 0, "y": 0}
+        knopf.background_normal = ""
+        knopf.background_color = (0, 0, 0, 0)
+        knopf.bind(on_press=self.bei_kauf)
+        return knopf
+
+    def bei_kauf(self, instance):
+        # Zeigt Klick-Feedback und führt den Kauf durch
+        artikel = instance.parent
+        punktzahlen = punktzahlen_laden()
+        einkaeufe = einkaeufe_laden()
+        guthaben = guthaben_berechnen(punktzahlen, einkaeufe)
+        if guthaben < artikel.kauf_preis:
+            self.abgelehnt_animation(artikel)
+            return
+        self.kauf_name = artikel.kauf_name
+        self.kauf_kategorie = artikel.kauf_kategorie
+        abdunkel_animation(instance)
+        Clock.schedule_once(self.kauf_abschliessen, 0.2)
+
+    def kauf_abschliessen(self, _dt):
+        # Schließt den Kauf ab nach der Animation
+        einkauf_durchfuehren(self.kauf_name, self.kauf_kategorie)
+        self.artikel_anzeigen()
+
+    def abgelehnt_animation(self, artikel):
+        # Schüttelt den Artikel kurz wenn nicht genug Guthaben
+        basis_x = artikel.x
+        schuetteln = Animation(x=basis_x - 10, duration=0.05)
+        schuetteln = schuetteln + Animation(x=basis_x + 10, duration=0.05)
+        schuetteln = schuetteln + Animation(x=basis_x - 8, duration=0.05)
+        schuetteln = schuetteln + Animation(x=basis_x, duration=0.05)
+        schuetteln.start(artikel)
+
+    def zurueck_zum_menue_geplant(self, knopf):
+        # Zeigt Klick-Feedback und plant den Wechsel zum Menü
+        abdunkel_animation(knopf)
+        Clock.schedule_once(self.zurueck_zum_menue, 0.2)
+
+    def zurueck_zum_menue(self, _dt):
+        # Geht zurück zum Hauptmenü mit Slide nach rechts
+        menu = self.manager.get_screen("menu")
+        menu.punktzahlen = punktzahlen_laden()
+        menu.zeiten = zeiten_laden()
+        menu.level_buttons_erstellen()
+        menu.gesamtpunktzahl_aktualisieren()
+        self.manager.transition = SlideTransition(direction="right", duration=0.3)
+        self.manager.current = "menu"
+        Clock.schedule_once(self.fade_wiederherstellen, 0.4)
+
+    def fade_wiederherstellen(self, _dt):
+        # Stellt die Fade-Transition für andere Bildschirmwechsel wieder her
+        self.manager.transition = FadeTransition(duration=0.2)
 
 
 ###### Spiel-Bildschirm ######
@@ -267,7 +549,8 @@ class SpielBildschirm(Screen):
     def level_laden(self, level_id):
         # Lädt ein Level und startet das Spiel
         logic.spiel_starten(level_id)
-        level_data = LEVELS[level_id]
+        alle_levels = aktive_levels_holen()
+        level_data = alle_levels[level_id]
         self.ids.level_titel.text = "{0} - {1}".format(level_id, level_data["name"])
         self.ids.hintergrund.source = level_data["bild"]
         self.alle_gegenstaende_entfernen()
@@ -285,7 +568,7 @@ class SpielBildschirm(Screen):
 
     def gegenstaende_platzieren(self):
         # Platziert alle Gegenstände des Levels auf dem Bildschirm
-        gegenstaende = GEGENSTAENDE[logic.zustand["level_id"]]
+        gegenstaende = aktive_gegenstaende_holen(logic.zustand["level_id"])
         spielfeld = self.ids.spielfeld
         for daten in gegenstaende:
             widget = self.gegenstand_widget_erstellen(daten)
@@ -511,6 +794,15 @@ class SpielBildschirm(Screen):
         # Schliesst das Ergebnis und geht zum Menü
         self.zurueck_zum_menue()
 
+    def menue_knopf_gedrueckt(self, knopf):
+        # Zeigt Klick-Feedback und plant den Wechsel zum Menü
+        abdunkel_animation(knopf)
+        Clock.schedule_once(self.menue_wechsel, 0.2)
+
+    def menue_wechsel(self, _dt):
+        # Wird nach der Animation aufgerufen
+        self.zurueck_zum_menue()
+
     def zurueck_zum_menue(self):
         # Räumt auf und geht zurück zum Hauptmenü
         self.timer_stoppen()
@@ -536,6 +828,7 @@ class MuellSammelSimulatorApp(App):
         # Startet die App und lädt beide Bildschirme
         Builder.load_file("menu.kv")
         Builder.load_file("spiel.kv")
+        Builder.load_file("einkaufsladen.kv")
         Window.orientation = "landscape"
         sm = ScreenManager()
         sm.transition = FadeTransition()
@@ -546,8 +839,11 @@ class MuellSammelSimulatorApp(App):
         menu.name = "menu"
         spiel = SpielBildschirm()
         spiel.name = "spiel"
+        laden = EinkaufsladenBildschirm()
+        laden.name = "einkaufsladen"
         sm.add_widget(menu)
         sm.add_widget(spiel)
+        sm.add_widget(laden)
         if platform == "android":
             return sm
         return self.skalierung_erstellen(sm)
