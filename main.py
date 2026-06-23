@@ -1,7 +1,9 @@
 import sys
 import math
-if sys.platform != "linux":
-    from kivy.config import Config
+from kivy.config import Config
+if sys.platform == "linux":
+    Config.set("graphics", "fullscreen", "auto")
+else:
     Config.set("graphics", "position", "custom")
     Config.set("graphics", "left", 630)
     Config.set("graphics", "top", 1441)
@@ -868,58 +870,6 @@ class MuellSammelSimulatorApp(App):
         wurzel.add_widget(skalierung)
         return wurzel
 
-    def on_start(self):
-        # Navigationsleiste auf Android verstecken
-        if platform == "android":
-            Clock.schedule_once(self.android_vollbild, 0.5)
-            Clock.schedule_once(self.android_vollbild, 2)
-
-    def on_resume(self):
-        # Nach Pause erneut Vollbild setzen
-        if platform == "android":
-            Clock.schedule_once(self.android_vollbild, 0.5)
-
-    def android_vollbild(self, _dt):
-        # Versteckt die Android-Navigationsleiste zuverlässig
-        try:
-            from jnius import autoclass # type: ignore
-            PythonActivity = autoclass("org.kivy.android.PythonActivity")
-            aktivitaet = PythonActivity.mActivity
-            fenster = aktivitaet.getWindow()
-            self.android_vollbild_neu(fenster)
-        except Exception as fehler:
-            print("Vollbild-Fehler: " + str(fehler))
-
-    def android_vollbild_neu(self, fenster):
-        # Nutzt WindowInsetsController (Android 11+)
-        try:
-            from jnius import autoclass # type: ignore
-            WindowInsetsController = autoclass(
-                "android.view.WindowInsetsController")
-            WindowInsets = autoclass("android.view.WindowInsets$Type")
-            controller = fenster.getInsetsController()
-            leisten = WindowInsets.systemBars()
-            controller.hide(leisten)
-            controller.setSystemBarsBehavior(
-                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE)
-        except Exception as fehler:
-            print("Neues Vollbild fehlgeschlagen: " + str(fehler))
-            self.android_vollbild_alt(fenster)
-
-    def android_vollbild_alt(self, fenster):
-        # Fallback für ältere Android-Versionen (vor Android 11)
-        try:
-            from jnius import autoclass # type: ignore
-            View = autoclass("android.view.View")
-            flags = View.SYSTEM_UI_FLAG_FULLSCREEN
-            flags = flags | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            flags = flags | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            fenster.getDecorView().setSystemUiVisibility(flags)
-        except Exception as fehler:
-            print("Vollbild-Fallback-Fehler: " + str(fehler))
 
 
 if __name__ == "__main__":
