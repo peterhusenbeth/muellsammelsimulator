@@ -112,6 +112,9 @@ def ende_pruefen():
         zustand["beendet"] = True
         zustand["gewonnen"] = True
 
+def zeit_bewerten():
+    if zustand["gewonnen"] and zustand["laufende_zeit"] < 10.0:
+        zustand["punktzahl"] = zustand["punktzahl"] + 50
 
 def ergebnis_speichern():
     # Speichert Punktzahl und (bei Sieg) die Zeit

@@ -4,9 +4,9 @@ from kivy.config import Config
 if sys.platform == "linux":
     Config.set("graphics", "fullscreen", "auto")
 else:
-    Config.set("graphics", "position", "custom")
-    Config.set("graphics", "left", 630)
-    Config.set("graphics", "top", 1441)
+    #Config.set("graphics", "position", "custom")
+    #Config.set("graphics", "left", 630)
+    #Config.set("graphics", "top", 1441)
     Config.set("graphics", "fullscreen", "auto")
 
 from kivy.app import App
@@ -30,7 +30,7 @@ from data import einkaeufe_laden, einkauf_durchfuehren, ist_gekauft
 from data import aktive_levels_holen, aktive_gegenstaende_holen, guthaben_berechnen
 import logic
 from logic import gesamte_punktzahl_berechnen, level_auswaehlen
-from logic import gesamte_zeit_berechnen, abgeschlossene_level_zaehlen
+from logic import gesamte_zeit_berechnen, abgeschlossene_level_zaehlen, zeit_bewerten
 
 DESIGN_BREITE = 2000
 DESIGN_HOEHE = 1200
@@ -215,10 +215,10 @@ class MenuBildschirm(Screen):
         # Erstellt die Punkte-Box für Bonus-Levels mit lila Hintergrund
         wrapper = FloatLayout()
         wrapper.size_hint = (None, 1)
-        wrapper.width = 40
+        wrapper.width = 60
         box = ScoreBoxBonus()
         box.size_hint = (None, None)
-        box.size = (40, 40)
+        box.size = (60, 40)
         box.pos_hint = {"center_y": 0.5, "right": 1}
         label = Label()
         label.text = "{0}".format(score)
@@ -251,10 +251,10 @@ class MenuBildschirm(Screen):
         # Erstellt die quadratische Punktzahl-Box, vertikal zentriert
         wrapper = FloatLayout()
         wrapper.size_hint = (None, 1)
-        wrapper.width = 40
+        wrapper.width = 60
         box = ScoreBox()
         box.size_hint = (None, None)
-        box.size = (40, 40)
+        box.size = (60, 40)
         box.pos_hint = {"center_y": 0.5, "right": 1}
         label = Label()
         label.text = "{0}".format(score)
@@ -758,6 +758,7 @@ class SpielBildschirm(Screen):
     def ergebnis_zeigen(self):
         # Zeigt das Ergebnis-Overlay am Ende des Levels an
         self.timer_stoppen()
+        zeit_bewerten()
         logic.ergebnis_speichern()
         self.ergebnis_overlay = ErgebnisOverlay()
         self.ergebnis_overlay.size_hint = (1, 1)
