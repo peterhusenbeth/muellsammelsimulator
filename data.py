@@ -119,6 +119,61 @@ GEGENSTAENDE = {
         {"name": "Baum", "typ": "natur", "bild": "assets/items/natur_baum.png", "pos_x": 0.25, "pos_y": 0.52, "groesse": 1.4, "bewegung": None, "drehung": 0},
         {"name": "Blume", "typ": "natur", "bild": "assets/items/natur_blume.png", "pos_x": 0.75, "pos_y": 0.42, "groesse": 1.0, "bewegung": None, "drehung": 0},
     ],
+    11: [
+        # Level 11 - Kanalisation (4 Müll + 4 Natur)
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.20, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.40, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.60, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.75, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.25, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.45, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.65, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.80, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    ],
+    12: [
+        # Level 12 - Spielplatz (4 Müll + 4 Natur)
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.20, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.40, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.60, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.75, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.25, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.45, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.65, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.80, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    ],
+    13: [
+        # Level 13 - ??? (4 Müll + 4 Natur)
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.20, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.40, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.60, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.75, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.25, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.45, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.65, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.80, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    ],
+    14: [
+        # Level 14 - ??? (4 Müll + 4 Natur)
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.20, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.40, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.60, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.75, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.25, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.45, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.65, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.80, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    ],
+    15: [
+        # Level 15 - ??? (4 Müll + 4 Natur)
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.20, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.40, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.60, "pos_y": 0.30, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "muell", "bild": "assets/items/muell_???.png", "pos_x": 0.75, "pos_y": 0.35, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.25, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.45, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.65, "pos_y": 0.50, "groesse": 1.0, "bewegung": None, "drehung": 0},
+        {"name": "???", "typ": "natur", "bild": "assets/items/natur_???.png", "pos_x": 0.80, "pos_y": 0.55, "groesse": 1.0, "bewegung": None, "drehung": 0},
+    ],
 }
 
 # Kaufbare Levels (werden nach Kauf freigeschaltet)
